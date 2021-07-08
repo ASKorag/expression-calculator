@@ -1,110 +1,76 @@
-// function eval() {
-//   // Do not use eval!!!
-//   return
-// }
-
 function expressionCalculator(expr: string) {
   const regExp = /\d+|\+|-|\*|\/|\(|\)/g
-  const tokens = expr.match(regExp)
-
+  const tokens = expr.match(regExp) || []
   let pos = 0
-
   return parse(tokens)
 
-
-
-  function parse(tokens) {
-    let result = expression()
-
+  function parse(tokens: RegExpMatchArray): number {
+    const result: number = expression()
     if (pos !== tokens.length) {
       throw 'ExpressionError: Brackets must be paired'
-    }
-
-    if (!Number.isFinite(result)) {
-      throw "TypeError: Division by zero."
     }
     return result
   }
 
-  function factor() {
-    let value = tokens[pos]
-
-    let result;
-        if (value === '(') {
-            pos++;
-            // если выражение в скобках, то рекурсивно переходим на обработку подвыражения типа Е
-            result = expression();  
-            let closingBracket;
-            if (pos < tokens.length) {
-                closingBracket = tokens[pos];
-            } else {
-                throw 'ExpressionError: Brackets must be paired'
-            }
-            if (pos < tokens.length && closingBracket === ")") {
-                pos++;
-                return +result;
-            }
-            throw 'ccc' + closingBracket;
-        }
-        pos++;
-        // в противном случае токен должен быть числом
-        // if (value === '0') {
-        //   throw 'TypeError: Division by zero.'
-        // } else {
-
-          return +value;
-        // }
-  }
-
-  function term() {
-    // находим первый множитель
-    let first = factor();
-
+  function expression(): number {
+    let firstTerm = term()
     while (pos < tokens.length) {
-        let operator = tokens[pos];
-        if (operator !== "*" && operator !== "/") {
-            break;
-        } else {
-            pos++;
-        }
-
-        // находим второй множитель (делитель)
-        let second = factor();
-        if (operator === "*") {
-            first *= second;
-        } else {
-            first /= second;
-        }
-    }
-    if (!Number.isFinite(first)) {
-      throw "TypeError: Division by zero."
-    }
-    return +first;
-  }
-
-  function expression() {
-  // находим первое слагаемое
-  let first = term();
-
-  while (pos < tokens.length) {
-      let operator = tokens[pos];
-      if (operator !== "+" && operator !== "-") {
-          break;
+      const operator = tokens[pos]
+      if (operator !== '+' && operator !== '-') {
+        break
       } else {
-          pos++;
+        pos++
       }
+      const secondTerm = term()
+      operator === '+' ? (firstTerm += secondTerm) : (firstTerm -= secondTerm)
+    }
+    return firstTerm
+  }
 
-      // находим второе слагаемое (вычитаемое)
-      let second = term();
-      if (operator === "+") {
-          first += second;
+ 
+
+  function term(): number {
+    let firstFactor = factor()
+    while (pos < tokens.length) {
+      const operator = tokens[pos]
+      if (operator !== '*' && operator !== '/') {
+        break
       } else {
-          first -= second;
+        pos++
       }
-  }
-  return +first;
+      const secondFactor = factor()
+      if (operator === '*') {
+        firstFactor *= secondFactor
+      } else {
+        if (secondFactor === 0) {
+          throw 'TypeError: Division by zero.'
+        }
+        firstFactor /= secondFactor
+      }
+    }
+    return firstFactor
   }
 
+  function factor(): number {
+    const token = tokens[pos]
+    if (token === '(') {
+      pos++
+      let value = expression()
+      let closingBracket
+      if (pos < tokens.length) {
+        closingBracket = tokens[pos]
+      } else {
+        throw 'ExpressionError: Brackets must be paired'
+      }
+      if (pos < tokens.length && closingBracket === ')') {
+        pos++
+        return value
+      }
+      throw 'ExpressionError: Brackets must be paired'
+    }
+    pos++
+    return +token
+  }
 }
 
 module.exports = {
