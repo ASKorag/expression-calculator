@@ -1,6 +1,8 @@
 "use strict";
 function expressionCalculator(expr) {
-    return expr;
+    const regExp = /\d+|\+|-|\*|\/|\(|\)/g;
+    const tokens = expr.match(regExp);
+    return tokens;
 }
 module.exports = {
     expressionCalculator,
